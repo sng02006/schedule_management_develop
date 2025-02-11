@@ -1,8 +1,10 @@
 package com.example.schedulemanagementdevelop.service;
 
-import com.example.schedulemanagementdevelop.dto.ScheduleResponseDto;
+import com.example.schedulemanagementdevelop.dto.scheduleDto.ScheduleResponseDto;
 import com.example.schedulemanagementdevelop.entity.Schedule;
+import com.example.schedulemanagementdevelop.entity.User;
 import com.example.schedulemanagementdevelop.repository.ScheduleRepository;
+import com.example.schedulemanagementdevelop.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -15,11 +17,14 @@ import java.util.List;
 @RequiredArgsConstructor
 public class ScheduleService {
     private final ScheduleRepository scheduleRepository;
+    private final UserRepository userRepository;
 
-    public ScheduleResponseDto save(String title, String toDo, String username) {
-        Schedule schedule = new Schedule(title, toDo, username);
+    public ScheduleResponseDto save(String title, String toDo, Long userId) {
+        User findUser = userRepository.findUserByUserIdOrElseThrow(userId);
+        Schedule schedule = new Schedule(title, toDo);
+        schedule.setUser(findUser);
         Schedule saveSchedule = scheduleRepository.save(schedule);
-        return new ScheduleResponseDto(saveSchedule.getId(), saveSchedule.getTitle(), saveSchedule.getToDo(), saveSchedule.getUsername());
+        return new ScheduleResponseDto(saveSchedule.getId(), saveSchedule.getTitle(), saveSchedule.getToDo());
     }
 
     public List<ScheduleResponseDto> findAll() {
@@ -35,35 +40,32 @@ public class ScheduleService {
     }
 
     @Transactional
-    public void updateSchedule(Long id, String title, String toDo, String username) {
-        if (title == null || toDo == null || username == null) {
+    public void updateSchedule(Long id, String title, String toDo) {
+        if (title == null || toDo == null) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "The title and contents are required values.");
         }
 
         Schedule findSchedule = scheduleRepository.findByIdOrElseThrow(id);
-
-        findSchedule.updateSchedule(title, toDo, username);
+        findSchedule.updateSchedule(title, toDo);
     }
 
     @Transactional
-    public void updateTitle(long id, String title, String toDo, String username) {
-        if (title == null || toDo != null || username != null) {
+    public void updateTitle(Long id, String title, String toDo) {
+        if (title == null || toDo != null) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "The title and contents are required values.");
         }
 
         Schedule findSchedule = scheduleRepository.findByIdOrElseThrow(id);
-
         findSchedule.updateTitle(title);
     }
 
     @Transactional
-    public void updateToDo(long id, String title, String toDo, String username) {
-        if (title != null || toDo == null || username != null) {
+    public void updateToDo(Long id, String title, String toDo) {
+        if (title != null || toDo == null) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "The title and contents are required values.");
         }
 
         Schedule findSchedule = scheduleRepository.findByIdOrElseThrow(id);
-
         findSchedule.updateToDo(toDo);
     }
 

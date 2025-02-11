@@ -1,8 +1,8 @@
 package com.example.schedulemanagementdevelop.controller;
 
-import com.example.schedulemanagementdevelop.dto.CreateScheduleRequestDto;
-import com.example.schedulemanagementdevelop.dto.ScheduleResponseDto;
-import com.example.schedulemanagementdevelop.dto.UpdateScheduleRequestDto;
+import com.example.schedulemanagementdevelop.dto.scheduleDto.CreateScheduleRequestDto;
+import com.example.schedulemanagementdevelop.dto.scheduleDto.ScheduleResponseDto;
+import com.example.schedulemanagementdevelop.dto.scheduleDto.UpdateScheduleRequestDto;
 import com.example.schedulemanagementdevelop.service.ScheduleService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -19,7 +19,7 @@ public class ScheduleController {
 
     @PostMapping
     public ResponseEntity<ScheduleResponseDto> save(@RequestBody CreateScheduleRequestDto requestDto) {
-        ScheduleResponseDto scheduleResponseDto = scheduleService.save(requestDto.getTitle(), requestDto.getToDo(), requestDto.getUsername());
+        ScheduleResponseDto scheduleResponseDto = scheduleService.save(requestDto.getTitle(), requestDto.getToDo(), requestDto.getUserId());
         return new ResponseEntity<>(scheduleResponseDto, HttpStatus.CREATED);
     }
 
@@ -38,27 +38,27 @@ public class ScheduleController {
     @PutMapping("/{id}")
         public ResponseEntity<Void> updateSchedule(
                 @PathVariable Long id,
-                @RequestBody UpdateScheduleRequestDto dto
+                @RequestBody UpdateScheduleRequestDto requestDto
     ) {
-        scheduleService.updateSchedule(id, dto.getTitle(), dto.getToDo(), dto.getUsername());
+        scheduleService.updateSchedule(id, requestDto.getTitle(), requestDto.getToDo());
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
     @PatchMapping("/title/{id}")
     public ResponseEntity<Void> updateTitle(
-        @PathVariable long id,
-        @RequestBody UpdateScheduleRequestDto dto
+        @PathVariable Long id,
+        @RequestBody UpdateScheduleRequestDto requestDto
     ){
-        scheduleService.updateTitle(id, dto.getTitle(), dto.getToDo(), dto.getUsername());
+        scheduleService.updateTitle(id, requestDto.getTitle(), requestDto.getToDo());
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
     @PatchMapping("/toDo/{id}")
     public ResponseEntity<Void> updateToDo(
-            @PathVariable long id,
-            @RequestBody UpdateScheduleRequestDto dto
+            @PathVariable Long id,
+            @RequestBody UpdateScheduleRequestDto requestDto
     ){
-        scheduleService.updateToDo(id, dto.getTitle(), dto.getToDo(), dto.getUsername());
+        scheduleService.updateToDo(id, requestDto.getTitle(), requestDto.getToDo());
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
