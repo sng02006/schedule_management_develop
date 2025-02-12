@@ -1,6 +1,8 @@
 package com.example.schedulemanagementdevelop.service;
 
+import com.example.schedulemanagementdevelop.dto.scheduleDto.CreateScheduleRequestDto;
 import com.example.schedulemanagementdevelop.dto.scheduleDto.ScheduleResponseDto;
+import com.example.schedulemanagementdevelop.dto.scheduleDto.UpdateScheduleRequestDto;
 import com.example.schedulemanagementdevelop.entity.Schedule;
 import com.example.schedulemanagementdevelop.entity.User;
 import com.example.schedulemanagementdevelop.repository.ScheduleRepository;
@@ -19,12 +21,14 @@ public class ScheduleService {
     private final ScheduleRepository scheduleRepository;
     private final UserRepository userRepository;
 
-    public ScheduleResponseDto save(String title, String toDo, Long userId) {
-        User findUser = userRepository.findUserByUserIdOrElseThrow(userId);
-        Schedule schedule = new Schedule(title, toDo);
+    @Transactional
+    public ScheduleResponseDto save(CreateScheduleRequestDto requestDto) {
+        User findUser = userRepository.findUserByUserIdOrElseThrow(requestDto.getUserId());
+        Schedule schedule = new Schedule(requestDto.getTitle(), requestDto.getToDo());
         schedule.setUser(findUser);
-        Schedule saveSchedule = scheduleRepository.save(schedule);
-        return new ScheduleResponseDto(saveSchedule.getId(), saveSchedule.getTitle(), saveSchedule.getToDo());
+        Schedule savedSchedule = scheduleRepository.save(schedule);
+        verifyPassword(savedSchedule.getId(), requestDto.getPassword());
+        return new ScheduleResponseDto(savedSchedule.getId(), savedSchedule.getTitle(), savedSchedule.getToDo());
     }
 
     public List<ScheduleResponseDto> findAll() {
@@ -40,37 +44,52 @@ public class ScheduleService {
     }
 
     @Transactional
-    public void updateSchedule(Long id, String title, String toDo) {
-        if (title == null || toDo == null) {
+    public void updateSchedule(Long id, UpdateScheduleRequestDto requestDto) {
+        verifyPassword(id, requestDto.getPassword());
+
+        if (requestDto.getTitle() == null || requestDto.getToDo() == null) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "The title and contents are required values.");
         }
 
         Schedule findSchedule = scheduleRepository.findByIdOrElseThrow(id);
-        findSchedule.updateSchedule(title, toDo);
+        findSchedule.updateSchedule(requestDto.getTitle(), requestDto.getToDo());
     }
 
     @Transactional
-    public void updateTitle(Long id, String title, String toDo) {
-        if (title == null || toDo != null) {
+    public void updateTitle(Long id, UpdateScheduleRequestDto requestDto) {
+        verifyPassword(id, requestDto.getPassword());
+
+        if (requestDto.getTitle() == null || requestDto.getToDo() != null) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "The title and contents are required values.");
         }
 
         Schedule findSchedule = scheduleRepository.findByIdOrElseThrow(id);
-        findSchedule.updateTitle(title);
+        findSchedule.updateTitle(requestDto.getTitle());
     }
 
     @Transactional
-    public void updateToDo(Long id, String title, String toDo) {
-        if (title != null || toDo == null) {
+    public void updateToDo(Long id, UpdateScheduleRequestDto requestDto) {
+        verifyPassword(id, requestDto.getPassword());
+
+        if (requestDto.getTitle() != null || requestDto.getToDo() == null) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "The title and contents are required values.");
         }
 
         Schedule findSchedule = scheduleRepository.findByIdOrElseThrow(id);
-        findSchedule.updateToDo(toDo);
+        findSchedule.updateToDo(requestDto.getToDo());
     }
 
+    @Transactional
     public void delete(Long id) {
         Schedule findSchedule = scheduleRepository.findByIdOrElseThrow(id);
         scheduleRepository.delete(findSchedule);
+    }
+
+    private void verifyPassword(Long id, String password) {
+        Schedule schedule = scheduleRepository.findByIdOrElseThrow(id);
+        User findUser = userRepository.findUserByUserIdOrElseThrow(schedule.getUser().getId());
+        if (!findUser.getPassword().equals(password)) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Wrong password");
+        }
     }
 }

@@ -19,7 +19,7 @@ public class ScheduleController {
 
     @PostMapping
     public ResponseEntity<ScheduleResponseDto> save(@RequestBody CreateScheduleRequestDto requestDto) {
-        ScheduleResponseDto scheduleResponseDto = scheduleService.save(requestDto.getTitle(), requestDto.getToDo(), requestDto.getUserId());
+        ScheduleResponseDto scheduleResponseDto = scheduleService.save(requestDto);
         return new ResponseEntity<>(scheduleResponseDto, HttpStatus.CREATED);
     }
 
@@ -40,7 +40,7 @@ public class ScheduleController {
                 @PathVariable Long id,
                 @RequestBody UpdateScheduleRequestDto requestDto
     ) {
-        scheduleService.updateSchedule(id, requestDto.getTitle(), requestDto.getToDo());
+        scheduleService.updateSchedule(id, requestDto);
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
@@ -49,7 +49,7 @@ public class ScheduleController {
         @PathVariable Long id,
         @RequestBody UpdateScheduleRequestDto requestDto
     ){
-        scheduleService.updateTitle(id, requestDto.getTitle(), requestDto.getToDo());
+        scheduleService.updateTitle(id, requestDto);
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
@@ -58,11 +58,11 @@ public class ScheduleController {
             @PathVariable Long id,
             @RequestBody UpdateScheduleRequestDto requestDto
     ){
-        scheduleService.updateToDo(id, requestDto.getTitle(), requestDto.getToDo());
+        scheduleService.updateToDo(id, requestDto);
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
-    @DeleteMapping("/{id}")
+    @DeleteMapping("/delete/{id}")
     public ResponseEntity<Void> delete(@PathVariable Long id) {
         scheduleService.delete(id);
         return new ResponseEntity<>(HttpStatus.OK);

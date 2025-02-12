@@ -20,8 +20,9 @@ import java.util.Optional;
 public class UserService {
     private final UserRepository userRepository;
 
-    public SignUpResponseDto signup(String name, String email) {
-        User user = new User(name, email);
+    @Transactional
+    public SignUpResponseDto signup(String name, String email, String password) {
+        User user = new User(name, email, password);
         User savedUser = userRepository.save(user);
         return new SignUpResponseDto(savedUser.getId(), savedUser.getName(), savedUser.getEmail());
     }
@@ -74,6 +75,16 @@ public class UserService {
         findUser.updateEmail(email);
     }
 
+    @Transactional
+    public void updatePassword(Long id, String oldPassword, String newPassword) {
+        User findUser = userRepository.findByIdOrElseThrow(id);
+        if (!findUser.getPassword().equals(oldPassword)) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "The password does not match.");
+        }
+        findUser.updatePassword(newPassword);
+    }
+
+    @Transactional
     public void delete(Long id) {
         User findUser = userRepository.findByIdOrElseThrow(id);
         userRepository.delete(findUser);

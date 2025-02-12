@@ -1,10 +1,7 @@
 package com.example.schedulemanagementdevelop.controller;
 
 import com.example.schedulemanagementdevelop.dto.scheduleDto.ScheduleResponseDto;
-import com.example.schedulemanagementdevelop.dto.userDto.SignUpRequestDto;
-import com.example.schedulemanagementdevelop.dto.userDto.SignUpResponseDto;
-import com.example.schedulemanagementdevelop.dto.userDto.UserRequestDto;
-import com.example.schedulemanagementdevelop.dto.userDto.UserResponseDto;
+import com.example.schedulemanagementdevelop.dto.userDto.*;
 import com.example.schedulemanagementdevelop.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -21,7 +18,7 @@ public class UserController {
 
     @PostMapping("/signup")
     public ResponseEntity<SignUpResponseDto> signup(@RequestBody SignUpRequestDto requestDto) {
-        SignUpResponseDto signUpResponseDto = userService.signup(requestDto.getName(), requestDto.getEmail());
+        SignUpResponseDto signUpResponseDto = userService.signup(requestDto.getName(), requestDto.getEmail(), requestDto.getPassword());
         return new ResponseEntity<>(signUpResponseDto, HttpStatus.CREATED);
     }
 
@@ -61,6 +58,15 @@ public class UserController {
             @RequestBody UserRequestDto requestDto
     ) {
         userService.updateEmail(id, requestDto.getName(), requestDto.getEmail());
+        return new ResponseEntity<>(HttpStatus.OK);
+    }
+
+    @PatchMapping("/password/{id}")
+    public ResponseEntity<Void> updatePassword(
+            @PathVariable Long id,
+            @RequestBody UpdatePasswordRequestDto requestDto
+    ) {
+        userService.updatePassword(id, requestDto.getOldPassword(), requestDto.getNewPassword());
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
