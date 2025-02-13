@@ -1,11 +1,14 @@
 package com.example.schedulemanagementdevelop.controller;
 
-import com.example.schedulemanagementdevelop.dto.scheduleDto.ScheduleResponseDto;
 import com.example.schedulemanagementdevelop.dto.userDto.*;
 import com.example.schedulemanagementdevelop.service.UserService;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpSession;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -18,8 +21,39 @@ public class UserController {
 
     @PostMapping("/signup")
     public ResponseEntity<SignUpResponseDto> signup(@RequestBody SignUpRequestDto requestDto) {
-        SignUpResponseDto signUpResponseDto = userService.signup(requestDto.getName(), requestDto.getEmail(), requestDto.getPassword());
+        SignUpResponseDto signUpResponseDto = userService.signup(requestDto);
         return new ResponseEntity<>(signUpResponseDto, HttpStatus.CREATED);
+    }
+
+    @PostMapping("/login")
+    public ResponseEntity<LoginResponseDto> login(@RequestBody LoginRequestDto requestDto, HttpServletRequest request) {
+        LoginResponseDto responseDto = userService.login(requestDto);
+        Long userId = responseDto.getId();
+
+        // 로그인 실패
+        if (userId == null) {
+            return new ResponseEntity<>(responseDto, HttpStatus.UNAUTHORIZED);
+        }
+
+        // 로그인 성공
+        HttpSession session = request.getSession();
+        // 회원 정보 조회
+        UserResponseDto loginUser = userService.findById(userId);
+        // Session에 로그인 회원 정보 저장
+        session.setAttribute("loginUser", loginUser);
+
+        return new ResponseEntity<>(responseDto, HttpStatus.OK);
+    }
+
+    @PostMapping("/logout")
+    public ResponseEntity<LoginResponseDto> logout(HttpServletRequest request) {
+        HttpSession session = request.getSession(false);
+
+        if (session != null) {
+            session.invalidate();
+        }
+
+        return new ResponseEntity<>(HttpStatus.OK);
     }
 
     @GetMapping
@@ -39,7 +73,7 @@ public class UserController {
             @PathVariable Long id,
             @RequestBody UserRequestDto requestDto
     ){
-        userService.updateUser(id, requestDto.getName(), requestDto.getEmail());
+        userService.updateUser(id, requestDto);
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
@@ -48,7 +82,7 @@ public class UserController {
             @PathVariable Long id,
             @RequestBody UserRequestDto requestDto
     ) {
-        userService.updateName(id, requestDto.getName(), requestDto.getEmail());
+        userService.updateName(id, requestDto);
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
@@ -57,7 +91,7 @@ public class UserController {
             @PathVariable Long id,
             @RequestBody UserRequestDto requestDto
     ) {
-        userService.updateEmail(id, requestDto.getName(), requestDto.getEmail());
+        userService.updateEmail(id, requestDto);
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
@@ -66,7 +100,7 @@ public class UserController {
             @PathVariable Long id,
             @RequestBody UpdatePasswordRequestDto requestDto
     ) {
-        userService.updatePassword(id, requestDto.getOldPassword(), requestDto.getNewPassword());
+        userService.updatePassword(id, requestDto);
         return new ResponseEntity<>(HttpStatus.OK);
     }
 

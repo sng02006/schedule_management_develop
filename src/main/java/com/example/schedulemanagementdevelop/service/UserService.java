@@ -1,8 +1,7 @@
 package com.example.schedulemanagementdevelop.service;
 
 import com.example.schedulemanagementdevelop.dto.scheduleDto.ScheduleResponseDto;
-import com.example.schedulemanagementdevelop.dto.userDto.SignUpResponseDto;
-import com.example.schedulemanagementdevelop.dto.userDto.UserResponseDto;
+import com.example.schedulemanagementdevelop.dto.userDto.*;
 import com.example.schedulemanagementdevelop.entity.Schedule;
 import com.example.schedulemanagementdevelop.entity.User;
 import com.example.schedulemanagementdevelop.repository.UserRepository;
@@ -21,8 +20,8 @@ public class UserService {
     private final UserRepository userRepository;
 
     @Transactional
-    public SignUpResponseDto signup(String name, String email, String password) {
-        User user = new User(name, email, password);
+    public SignUpResponseDto signup(SignUpRequestDto requestDto) {
+        User user = new User(requestDto.getName(), requestDto.getEmail(), requestDto.getPassword());
         User savedUser = userRepository.save(user);
         return new SignUpResponseDto(savedUser.getId(), savedUser.getName(), savedUser.getEmail());
     }
@@ -45,43 +44,60 @@ public class UserService {
         return new UserResponseDto(id, findUser.getName(), findUser.getEmail());
     }
 
+    public LoginResponseDto login(LoginRequestDto requestDto) {
+
+
+        // 입력받은 email과 일치하는 Database 조회
+        Long id = userRepository.findIdByEmail(requestDto.getEmail());
+        if (id == null) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Does not exists email : " + requestDto.getEmail());
+        }
+        // 입력받은 password와 Database에 저장된 password 비교
+        String savedPassword = userRepository.findPasswordByEmail(requestDto.getEmail());
+        if (!savedPassword.equals(requestDto.getPassword())) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Wrong password");
+        }
+
+        return new LoginResponseDto(id, requestDto.getEmail());
+    }
+
     @Transactional
-    public void updateUser(Long id, String name, String email) {
-        if (name == null || email == null) {
+    public void updateUser(Long id, UserRequestDto requestDto) {
+        if (requestDto.getName() == null || requestDto.getEmail() == null) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "The title and contents are required values.");
         }
 
         User findUser = userRepository.findByIdOrElseThrow(id);
-        findUser.updateUser(name, email);
+        findUser.updateUser(requestDto.getName(), requestDto.getEmail());
     }
 
     @Transactional
-    public void updateName(Long id, String name, String email) {
-        if (name == null || email != null) {
+    public void updateName(Long id, UserRequestDto requestDto) {
+        if (requestDto.getName() == null || requestDto.getEmail() != null) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "The title and contents are required values.");
         }
 
         User findUser = userRepository.findByIdOrElseThrow(id);
-        findUser.updateName(name);
+        findUser.updateName(requestDto.getName());
     }
 
     @Transactional
-    public void updateEmail(Long id, String name, String email) {
-        if (name != null || email == null) {
+    public void updateEmail(Long id, UserRequestDto requestDto) {
+        if (requestDto.getName() != null || requestDto.getEmail() == null) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "The title and contents are required values.");
         }
 
         User findUser = userRepository.findByIdOrElseThrow(id);
-        findUser.updateEmail(email);
+        findUser.updateEmail(requestDto.getEmail());
     }
 
     @Transactional
-    public void updatePassword(Long id, String oldPassword, String newPassword) {
+    public void updatePassword(Long id, UpdatePasswordRequestDto requestDto) {
         User findUser = userRepository.findByIdOrElseThrow(id);
-        if (!findUser.getPassword().equals(oldPassword)) {
+        if (!findUser.getPassword().equals(requestDto.getOldPassword())) {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "The password does not match.");
         }
-        findUser.updatePassword(newPassword);
+        findUser.updatePassword(requestDto.getNewPassword());
     }
 
     @Transactional

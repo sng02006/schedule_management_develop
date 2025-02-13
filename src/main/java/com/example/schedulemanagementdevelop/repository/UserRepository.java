@@ -18,4 +18,26 @@ public interface UserRepository extends JpaRepository<User, Long> {
     default User findUserByUserIdOrElseThrow(Long userId){
         return findUserById(userId).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Does not exist userId = " + userId));
     }
+
+    Optional<User> findUserByEmail(String email);
+
+//    default User findUserByEmailOrElseThrow(String email){
+//        return findUserByEmail(email).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Does not exist userId = " + email));
+//    }
+
+    default Long findIdByEmail(String email){
+        return findUserByEmail(email).stream()
+                .filter(user -> user.getEmail().equals(email))
+                .map(User::getId)
+                .findFirst()
+                .orElse(null);
+    }
+
+    default String findPasswordByEmail(String email){
+        return findUserByEmail(email).stream()
+                .filter(user -> user.getEmail().equals(email))
+                .map(User::getPassword)
+                .findFirst()
+                .orElse(null);
+    }
 }

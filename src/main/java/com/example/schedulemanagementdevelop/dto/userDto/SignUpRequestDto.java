@@ -1,6 +1,8 @@
 package com.example.schedulemanagementdevelop.dto.userDto;
 
+import lombok.AllArgsConstructor;
 import lombok.Getter;
+import org.antlr.v4.runtime.misc.NotNull;
 
 @Getter
 public class SignUpRequestDto {
