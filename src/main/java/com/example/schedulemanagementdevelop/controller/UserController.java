@@ -40,7 +40,7 @@ public class UserController {
         // 회원 정보 조회
         UserResponseDto loginUser = userService.findById(userId);
         // Session에 로그인 회원 정보 저장
-        session.setAttribute("loginUser", loginUser);
+        session.setAttribute("sessionKey", loginUser);
 
         return new ResponseEntity<>(responseDto, HttpStatus.OK);
     }
